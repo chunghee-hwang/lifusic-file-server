@@ -1,14 +1,11 @@
 package com.chung.lifusic.file.service;
 
 import com.chung.lifusic.file.common.utils.StringUtil;
-import com.chung.lifusic.file.dto.FileCreateRequestDto;
-import com.chung.lifusic.file.dto.FileDto;
-import com.chung.lifusic.file.dto.FileResponseDto;
+import com.chung.lifusic.file.dto.*;
 import com.chung.lifusic.file.entity.File;
 import com.chung.lifusic.file.repository.FileRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.http.fileupload.impl.IOFileUploadException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -28,7 +25,7 @@ public class FileStorageService {
     private final FileRepository fileRepository;
 
     @Transactional
-    public FileResponseDto storeFileInDirectoryAndDB(FileCreateRequestDto fileCreateRequest) throws IOException {
+    public FileCreateResponseDto storeFileInDirectoryAndDB(FileCreateRequestDto fileCreateRequest) throws IOException {
         FileDto musicTempFile = fileCreateRequest.getMusicTempFile();
         FileDto thumbnailTempFile = fileCreateRequest.getThumbnailTempFile();
 
@@ -40,9 +37,9 @@ public class FileStorageService {
             thumbnailFile = saveFileInfo(thumbnailTempFile, thumbnailFilePath);
         }
 
-        return FileResponseDto.builder()
+        return FileCreateResponseDto.builder()
                 .content(
-                        FileResponseDto.Content.builder()
+                        FileCreateResponseDto.Content.builder()
                                 .musicFileId(musicFile.getId())
                                 .thumbnailFileId(thumbnailFile == null ? null : thumbnailFile.getId())
                                 .musicName(fileCreateRequest.getMusicName())
@@ -50,6 +47,40 @@ public class FileStorageService {
                 )
                 .requestUserId(fileCreateRequest.getRequestUserId())
                 .isSuccess(true)
+                .build();
+    }
+
+    @Transactional
+    public FileDeleteResponseDto deleteFileInDirectoryAndDB(FileDeleteRequestDto fileDeleteRequest) {
+
+        Long musicFileId = fileDeleteRequest.getMusicFileId();
+        Long thumbnailFileId = fileDeleteRequest.getThumbnailFileId();
+
+        File musicFile = fileRepository.findById(musicFileId).orElseGet(() -> null);
+        if (musicFile != null) {
+            // DB에서 삭제
+            fileRepository.deleteById(musicFileId);
+            // 파일 삭제
+            this.deleteFile(musicFile.getPath());
+        }
+
+        if (thumbnailFileId != null) {
+            File thumnailFile = fileRepository.findById(thumbnailFileId).orElseGet(() -> null);
+            if (thumnailFile != null) {
+                // DB에서 삭제
+                fileRepository.deleteById(thumbnailFileId);
+                // 파일 삭제
+                this.deleteFile(thumnailFile.getPath());
+            }
+        }
+
+        return FileDeleteResponseDto.builder()
+                .isSuccess(true)
+                .requestUserId(fileDeleteRequest.getRequestUserId())
+                .content(FileDeleteResponseDto.Content.builder()
+                        .musicFileId(musicFileId)
+                        .thumbnailFileId(thumbnailFileId)
+                        .build())
                 .build();
     }
 
@@ -63,17 +94,28 @@ public class FileStorageService {
         if (!tempFile.exists()) {
             throw new FileNotFoundException("Temp file not exists:" + tempFilePath);
         }
-        Path directoryPath = getFileDirectoryPath().resolve(randomName);
+        Path directoryPath = getFileDirectoryPath();
         if (!directoryPath.toFile().exists()) {
             Files.createDirectories(directoryPath);
         }
         final String fileExtension = StringUtils.getFilenameExtension(fileDto.getOriginalFileName());
-        Path filePath = directoryPath.resolve(randomName+"."+fileExtension);
+        Path filePath = directoryPath.resolve(randomName + "." + fileExtension);
         boolean renameSuccess = tempFile.renameTo(filePath.toFile());
         if (!renameSuccess) {
             throw new IOException("Cannot rename file:" + filePath);
         }
         return filePath.toAbsolutePath().toString();
+    }
+
+    /**
+     * 파일 삭제
+     */
+    private boolean deleteFile(String filePath) {
+        java.io.File file = new java.io.File(filePath);
+        if (file.exists()) {
+            return file.delete();
+        }
+        return false;
     }
 
     /**

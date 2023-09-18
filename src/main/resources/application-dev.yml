@@ -37,4 +37,4 @@ logging:
 file:
   upload:
     directory:
-      ${user.home}/files
+      /opt/lifusic/files
