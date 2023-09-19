@@ -1,8 +1,6 @@
 package com.chung.lifusic.file.dto;
 
-import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 
 @Data
 public class FileCreateRequestDto {
