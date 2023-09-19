@@ -7,6 +7,7 @@ import com.chung.lifusic.file.exception.UnExpectedException;
 import com.chung.lifusic.file.repository.FileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,10 +28,13 @@ import java.util.NoSuchElementException;
 public class FileStreamService {
     private final FileRepository fileRepository;
 
+    @Value("${file.upload.directory}")
+    private String FILE_DIRECTORY;
+
     public Path getFilePath(Long fileId) {
         try {
             File file = fileRepository.findById(fileId).orElseThrow();
-            return Paths.get(file.getPath());
+            return getFileDirectoryPath().resolve(file.getPath());
         } catch (NoSuchElementException exception) {
             throw new NotFoundException();
         }
@@ -169,5 +173,9 @@ public class FileStreamService {
         } catch (IOException exception) {
             throw new UnExpectedException();
         }
+    }
+
+    private Path getFileDirectoryPath() {
+        return Paths.get(FILE_DIRECTORY).toAbsolutePath().normalize();
     }
 }

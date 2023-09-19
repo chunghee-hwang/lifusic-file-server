@@ -29,8 +29,8 @@ public class FileStorageService {
         FileDto musicTempFile = fileCreateRequest.getMusicTempFile();
         FileDto thumbnailTempFile = fileCreateRequest.getThumbnailTempFile();
 
-        String musicFilePath = storeFile(musicTempFile);
-        File musicFile = saveFileInfo(musicTempFile, musicFilePath);
+        String musicFileName = storeFile(musicTempFile);
+        File musicFile = saveFileInfo(musicTempFile, musicFileName);
         File thumbnailFile = null;
         if (thumbnailTempFile != null) {
             String thumbnailFilePath = storeFile(thumbnailTempFile);
@@ -99,12 +99,13 @@ public class FileStorageService {
             Files.createDirectories(directoryPath);
         }
         final String fileExtension = StringUtils.getFilenameExtension(fileDto.getOriginalFileName());
-        Path filePath = directoryPath.resolve(randomName + "." + fileExtension);
+        String fileName = randomName + "." + fileExtension;
+        Path filePath = directoryPath.resolve(fileName);
         boolean renameSuccess = tempFile.renameTo(filePath.toFile());
         if (!renameSuccess) {
             throw new IOException("Cannot rename file:" + filePath);
         }
-        return filePath.toAbsolutePath().toString();
+        return fileName;
     }
 
     /**
@@ -121,12 +122,12 @@ public class FileStorageService {
     /**
      * 파일을 DB에 저장
      */
-    private File saveFileInfo(FileDto fileDto, String path) {
+    private File saveFileInfo(FileDto fileDto, String fileName) {
         File file = File.builder()
                 .originalFileName(fileDto.getOriginalFileName())
                 .size(fileDto.getSize())
                 .contentType(fileDto.getContentType())
-                .path(path)
+                .path(fileName)
                 .build();
 
         return fileRepository.save(file);
