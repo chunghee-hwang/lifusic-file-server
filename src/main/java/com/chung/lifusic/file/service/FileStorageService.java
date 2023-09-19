@@ -88,7 +88,7 @@ public class FileStorageService {
      * 파일을 directory에 저장
      */
     private String storeFile(FileDto fileDto) throws IOException {
-        String tempFilePath = fileDto.getTempFilePath();
+        String tempFilePath = getFileDirectoryPath().resolve(fileDto.getTempFilePath()).toString();
         String randomName = StringUtil.getUniqueString(5);
         java.io.File tempFile = new java.io.File(tempFilePath);
         if (!tempFile.exists()) {
