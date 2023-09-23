@@ -1,0 +1,49 @@
+
+server:
+  port: 6060
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/lifusic
+    username: ENC(opq8CStgemkllGaDNVtL4pHsg8cuDRxQ)
+    password: ENC(1Dm57XikhApWY0zpFOEEPkPWZtpqb72Y)
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+  servlet:
+    multipart:
+      maxFileSize: 10MB # 파일 하나의 최대 크기
+      maxRequestSize: 30MB  # 한 번에 최대 업로드 가능 용량
+  kafka:
+    bootstrap-servers: localhost:9092,localhost:9093
+    consumer:
+      group-id: group1
+      auto-offset-reset: earliest
+
+jasypt:
+  encryptor:
+    bean: jasyptStringEncryptor
+
+logging:
+  level:
+    root: info
+    web: info
+    sql: error # error: Display when error occur
+    org.hibernate: error
+    org.springframework: error
+    com.chung.lifusic.core: info
+
+host:
+  server:
+    account:
+      http://localhost:8080
+
+file:
+  upload:
+    directory:
+        ${user.home}/Projects/lifusic-folders/lifusic/files

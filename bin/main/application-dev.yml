@@ -1,0 +1,40 @@
+server:
+  port: 6060
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://db:3306/lifusic
+    username: ENC(opq8CStgemkllGaDNVtL4pHsg8cuDRxQ)
+    password: ENC(1Dm57XikhApWY0zpFOEEPkPWZtpqb72Y)
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+  kafka:
+    bootstrap-servers: kafka1:9092,kafka2:9093
+    consumer:
+      group-id: group1
+      auto-offset-reset: earliest
+
+jasypt:
+  encryptor:
+    bean: jasyptStringEncryptor
+
+logging:
+  level:
+    root: info
+    web: info
+    sql: error # error: Display when error occur
+    org.hibernate: error
+    org.springframework: error
+    com.chung.lifusic.file: info
+
+file:
+  upload:
+    directory:
+      /opt/lifusic/files
