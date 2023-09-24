@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -51,37 +52,10 @@ public class FileStorageService {
     }
 
     @Transactional
-    public FileDeleteResponseDto deleteFileInDirectoryAndDB(FileDeleteRequestDto fileDeleteRequest) {
-
-        Long musicFileId = fileDeleteRequest.getMusicFileId();
-        Long thumbnailFileId = fileDeleteRequest.getThumbnailFileId();
-
-        File musicFile = fileRepository.findById(musicFileId).orElseGet(() -> null);
-        if (musicFile != null) {
-            // DB에서 삭제
-            fileRepository.deleteById(musicFileId);
-            // 파일 삭제
-            this.deleteFile(musicFile.getPath());
-        }
-
-        if (thumbnailFileId != null) {
-            File thumnailFile = fileRepository.findById(thumbnailFileId).orElseGet(() -> null);
-            if (thumnailFile != null) {
-                // DB에서 삭제
-                fileRepository.deleteById(thumbnailFileId);
-                // 파일 삭제
-                this.deleteFile(thumnailFile.getPath());
-            }
-        }
-
-        return FileDeleteResponseDto.builder()
-                .isSuccess(true)
-                .requestUserId(fileDeleteRequest.getRequestUserId())
-                .content(FileDeleteResponseDto.Content.builder()
-                        .musicFileId(musicFileId)
-                        .thumbnailFileId(thumbnailFileId)
-                        .build())
-                .build();
+    public List<FileDeleteResultDto> deleteFilesInDirectoryAndDB(List<Long> fileIds) {
+        List<File> files = fileRepository.findAllById(fileIds);
+        fileRepository.deleteAllByIdInBatch(fileIds);
+        return files.stream().map(this::deleteFile).toList();
     }
 
     /**
@@ -111,12 +85,17 @@ public class FileStorageService {
     /**
      * 파일 삭제
      */
-    private boolean deleteFile(String filePath) {
-        java.io.File file = new java.io.File(filePath);
-        if (file.exists()) {
-            return file.delete();
+    private FileDeleteResultDto deleteFile(File file) {
+        java.io.File f = getFileDirectoryPath().resolve(file.getPath()).toFile();
+        boolean isSuccess = false;
+        if (f.exists()) {
+            isSuccess = f.delete();
         }
-        return false;
+        return FileDeleteResultDto.builder()
+                .fileId(file.getId())
+                .filePath(file.getPath())
+                .isSuccess(isSuccess)
+                .build();
     }
 
     /**
