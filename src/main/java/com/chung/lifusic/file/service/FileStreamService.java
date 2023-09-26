@@ -57,21 +57,21 @@ public class FileStreamService {
         }
         try {
             long fileSize = Files.size(filePath);
-            log.info("Read range seeking value");
-            log.info("Range values: [{}]", rangeValues);
+//            log.info("Read range seeking value");
+//            log.info("Range values: [{}]", rangeValues);
             int dashPos = rangeValues.indexOf("-");
             if (dashPos > 0 && dashPos <= (rangeValues.length() - 1)) {
                 String[] ranges = rangeValues.split("-");
                 if (ranges.length > 0) {
-                    log.info("ranges size: " + ranges.length);
+//                    log.info("ranges size: " + ranges.length);
                     if (StringUtils.hasText(ranges[0])) {
-                        log.info("Range values: [0]: [{}]", ranges[0]);
+//                        log.info("Range values: [0]: [{}]", ranges[0]);
                         String valueToParse = StringUtil.getNumericStringValue(ranges[0]);
                         rangeStart = StringUtil.parseStringValue2Long(valueToParse);
                     }
 
                     if (ranges.length > 1) {
-                        log.info("Range values: [1]: [{}]", ranges[1]);
+//                        log.info("Range values: [1]: [{}]", ranges[1]);
                         String valueToParse = StringUtil.getNumericStringValue(ranges[1]);
                         rangeEnd = StringUtil.parseStringValue2Long(valueToParse);
                     } else {
@@ -85,7 +85,7 @@ public class FileStreamService {
             if ((rangeEnd == 0L && fileSize > 0L) || fileSize < rangeEnd) {
                 rangeEnd = fileSize - 1L;
             }
-            log.info("Parsed range values: {} - {}", rangeStart, rangeEnd);
+//            log.info("Parsed range values: {} - {}", rangeStart, rangeEnd);
             return loadPartialMediaFile(filePath, rangeStart, rangeEnd);
         } catch (IOException exception) {
             throw new UnExpectedException();
