@@ -46,6 +46,7 @@ public class FileStreamService {
      * @param rangeValues 파일 범위
      */
     public ResponseEntity<StreamingResponseBody> loadPartialMediaFile(Long fileId, String rangeValues) {
+        log.info("STREAM FILE START (ID: {})", fileId);
         Path filePath = this.getFilePath(fileId);
         if (!StringUtils.hasText(rangeValues)) {
             return loadEntireMediaFile(filePath);
@@ -88,7 +89,10 @@ public class FileStreamService {
 //            log.info("Parsed range values: {} - {}", rangeStart, rangeEnd);
             return loadPartialMediaFile(filePath, rangeStart, rangeEnd);
         } catch (IOException exception) {
+            log.info("STREAM FILE ERROR (ID: {}), exception: {}", fileId, exception.getMessage());
             throw new UnExpectedException();
+        } finally {
+            log.info("STREAM FILE END (ID: {})", fileId);
         }
     }
 
